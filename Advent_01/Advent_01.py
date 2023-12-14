@@ -65,18 +65,56 @@ What is the sum of all of the calibration values?
 """
 
 import re
+import csv
 
-def convert_numberwords_to_digits(input_str: str) -> str:
-    pass
+def clean_calibration_text(text: str) -> list:
+    text = text.splitlines()
+    text = replace_first_last_wordnumberstr_with_digitstr(text)
+    text = remove_alphabetic_characters_whitespace(text)
 
-def calculate_calibration(input):
-    input = re.sub('[A-Za-z]', '', input)
-    input = input.splitlines() 
-    input = [s.replace(" ", "") for s in input]
+    return text
+
+def replace_first_last_wordnumberstr_with_digitstr(calibrations: list) -> list:
+    words_to_digits = {
+        "one": "1",
+        "two": "2",
+        "three": "3",
+        "four": "4",
+        "five": "5",
+        "six": "6",
+        "seven": "7",
+        "eight": "8",
+        "nine": "9",
+    }
+
+
+    pattern = '(?=(one|two|three|four|five|six|seven|eight|nine))'
+
+    output = []
+
+    for c in calibrations:
+        replace_indices = {}
+        matches = re.finditer(pattern, c)
+        for match in matches:
+            replace_indices[match.start()] = c[match.start(1):match.end(1)]
+
+        for k, v in replace_indices.items():
+            c = c[:k] + words_to_digits[v] + c[k + 1:]
+
+        output.append(c)
+
+
+    return output
+
+def remove_alphabetic_characters_whitespace(text: list) -> list:
+    text = [re.sub("[A-Za-z]", "", s) for s in text]
+    text = [s.replace(" ", "") for s in text]
+
+    return text
+
+def calculate_calibration(text: str) -> str:
     cleaned_calibrations = []
-    for s in input:
-        if s == '9987':
-            t = 4
+    for s in text:
         cleaned_calibrations.append(s[0] + s[-1])
 
     answer = sum([int(n) for n in cleaned_calibrations])
@@ -84,9 +122,9 @@ def calculate_calibration(input):
 
 
 if __name__ == "__main__":
-    # Test input
-    # input = "1abc2\n" "pqr3stu8vwx\n" "a1b2c3d4e5f\n" "treb7uchet\n"
+    with open("Advent_01/input.csv", encoding="utf-8") as file:
+        text = file.read()
 
-    input = open('Advent_01/input.csv').read()
+    cleaned = clean_calibration_text(text)
 
-    print(calculate_calibration(input))
+    print(calculate_calibration(cleaned))
